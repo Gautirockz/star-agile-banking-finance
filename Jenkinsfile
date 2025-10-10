@@ -22,7 +22,7 @@ pipeline {
          withCredentials([usernamePassword(credentialsId: 'gowsaicred1', passwordVariable: 'gowpass', usernameVariable: 'gowdocker')]) {
                //withCredentials([usernameColonPassword(credentialsId: 'dockercred1', variable: 'dockerlogin')]) {
                 //withCredentials([file(credentialsId: 'gowtham123', variable: 'gowtham1')]) { 
-    sh 'docker login -u saigowtham2605'
+    sh 'docker login -u ${dockerlogin} -p ${dockerpassword}'
      }
               }
        }
