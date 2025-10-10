@@ -19,7 +19,7 @@ pipeline {
                 }
        stage('Docker-Login') {
            steps {
-              // withCredentials([usernamePassword(credentialsId: 'saidockerid', passwordVariable: 'saipassword2', usernameVariable: 'saidocker2')]) { 
+              withCredentials([usernamePassword(credentialsId: 'saidockerid', passwordVariable: 'saipassword2', usernameVariable: 'saidocker2')]) { 
                //withCredentials([usernameColonPassword(credentialsId: 'dockercred1', variable: 'dockerlogin')]) {
                sh 'docker login -u saigowtham2605'
                    // withCredentials([string(credentialsId: '', variable: 'dockervariable')]) {
@@ -29,8 +29,7 @@ pipeline {
                                     }
        stage('Push-Image') {
            steps {
-               sh 'docker push docker push saigowtham2605/financeme1:1:0'
+               sh 'docker push saigowtham2605/financeme1:1:0'
                      }
                 }
-}
 }
