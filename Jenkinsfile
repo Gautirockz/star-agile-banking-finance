@@ -17,5 +17,18 @@ pipeline {
 
                   }
                 }
+       stage('Docker-Login') {
+           steps {
+              // withCredentials([usernamePassword(credentialsId: 'Docker-login', passwordVariable: 'dockerpassword', usernameVariable: 'dockerlogin')]) { 
+               withCredentials([usernameColonPassword(credentialsId: 'dockercred', variable: 'dockerlogin')]) {
+               sh 'docker login -u ${dockerlogin} -p ${dockerpassword}'
+                                   }
+                        }
+                }
+       stage('Push-Image') {
+           steps {
+               sh 'docker push docker push saigowtham2605/financeme1:1:0'
+                     }
+                }
 }
 }
