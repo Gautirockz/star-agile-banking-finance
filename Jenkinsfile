@@ -3,7 +3,7 @@ pipeline {
  stages {
         stage('Build') {
             steps {
-          y      // Get some code from a GitHub repository
+               // Get some code from a GitHub repository
                 git https://github.com/Gautirockz/star-agile-banking-finance.git'
 
                 // Run Maven on a Unix agent.
