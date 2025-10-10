@@ -4,14 +4,13 @@ pipeline {
         stage('Build') {
             steps {
                // Get some code from a GitHub repository
-                git https://github.com/Gautirockz/star-agile-banking-finance.git'
+              git url: 'https://github.com/Gautirockz/star-agile-banking-finance.git', branch: 'master'
 
                 // Run Maven on a Unix agent.
                 sh "mvn -Dmaven.test.failure.ignore=true clean package"
 
             }        
         }
- }
   stage('Create Docker Image') {
            steps {
                sh 'docker build -t docker push saigowtham2605/financeme1:1:0 .'
@@ -19,3 +18,4 @@ pipeline {
                 }
 }
 
+}
