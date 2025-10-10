@@ -17,17 +17,14 @@ pipeline {
 
                   }
                 }
-       stage('Docker-Login') {
-           steps {
-        /// withCredentials([usernamePassword(credentialsId: 'gowsaicred1', passwordVariable: 'gowpass', usernameVariable: 'gowdocker')]) {
-               //withCredentials([usernameColonPassword(credentialsId: 'dockercred1', variable: 'dockerlogin')]) {
-                //withCredentials([file(credentialsId: 'gowtham123', variable: 'gowtham1')]) { 
-   // sh 'docker login -u ${dockerlogin} -p ${dockerpassword}'
-      
-         withCredentials([usernamePassword(credentialsId: 'gowsaicred1',
-                                      usernameVariable: 'DOCKER_USER',
-                                      passwordVariable: 'DOCKER_PAT')]) {       
-        sh '''
+      stage('Docker Login & Push') {
+  steps {
+    withCredentials([usernamePassword(
+      credentialsId: 'gowsaicred1',
+      usernameVariable: 'DOCKER_USER',
+      passwordVariable: 'DOCKER_PAT'
+    )]) {
+      sh '''
         set -e
         echo "Logging into Docker Hub as $DOCKER_USER (non-interactive)"
         echo "$DOCKER_PAT" | docker login -u "$DOCKER_USER" --password-stdin
@@ -37,13 +34,7 @@ pipeline {
 
         docker logout || true
       '''
-              }
-       }
-        stage('Push-Image') {
-           steps {
-               sh 'docker push saigowtham2605/financeme1:1:0'
-                     }
-                }
+    }
+  }
 }
-}
-}
+
