@@ -19,11 +19,11 @@ pipeline {
                 }
        stage('Docker-Login') {
            steps {
-              // withCredentials([usernamePassword(credentialsId: 'Docker-login', passwordVariable: 'dockerpassword', usernameVariable: 'dockerlogin')]) { 
+              // withCredentials([usernamePassword(credentialsId: 'saidockerid', passwordVariable: 'saipassword2', usernameVariable: 'saidocker2')]) { 
                //withCredentials([usernameColonPassword(credentialsId: 'dockercred1', variable: 'dockerlogin')]) {
                sh 'docker login -u saigowtham2605'
-                    withCredentials([usernameColonPassword(credentialsId: 'dockercred1', variable: 'dockerlogin')] {                                
-                                    }
+                   // withCredentials([string(credentialsId: '', variable: 'dockervariable')]) {
+    // some block
                                     }
                                     }
                                     }
