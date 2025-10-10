@@ -23,7 +23,7 @@ pipeline {
                //withCredentials([usernameColonPassword(credentialsId: 'dockercred1', variable: 'dockerlogin')]) {
                   
 withCredentials([file(credentialsId: '', variable: 'secretfile1')]) {
-               sh 'docker login -u saigowtham2605
+               sh 'docker login -u saigowtham2605'
      }
               }
        }
