@@ -13,7 +13,8 @@ pipeline {
         }
   stage('Create Docker Image') {
            steps {
-              sh docker build -t saigowtham2605/financeme1:1.0 .
+              sh 'docker build -t saigowtham2605/financeme1:1.0 .'
+
                   }
                 }
 }
