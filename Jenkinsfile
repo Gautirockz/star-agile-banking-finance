@@ -23,7 +23,8 @@ pipeline {
                withCredentials([usernameColonPassword(credentialsId: 'dockercred1', variable: 'dockerlogin')]) {
                sh 'docker login -u saigowtham2605'
                     withCredentials([usernameColonPassword(credentialsId: 'dockercred1', variable: 'dockerlogin')]
-                                   }
+                                    {                                
+                                    }
                         }
                 }
        stage('Push-Image') {
