@@ -1,3 +1,6 @@
+variable "private_key_path" {
+  description = "Path to PEM file for SSH connection"
+}
 resource "aws_instance" "test-server" {
   ami                    = "ami-052064a798f08f0d3"
   instance_type          = "t2.micro"
