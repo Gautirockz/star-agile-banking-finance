@@ -1,31 +1,96 @@
-stage('Config & Deployment') {
-  steps {
-    withCredentials([
-      [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsid1'],
-      file(credentialsId: 'ec2-ssh-key', variable: 'PEM')
-    ]) {
-      sh '''
-        set -e
-        echo "🔑 Using saijenkins1.pem from Jenkins credentials..."
-        cp "$PEM" terraform-files/saijenkins1.pem
-        chmod 600 terraform-files/saijenkins1.pem
+pipeline {
+  agent any
 
-        echo "✅ Checking AWS identity..."
-        aws sts get-caller-identity --region us-east-1
+  tools {
+    // Maven tool configured in Jenkins
+    maven "mymaven1"
+  }
 
-        cd terraform-files
-        terraform init -input=false
-        terraform validate
+  environment {
+    IMAGE_NAME = "saigowtham2605/financeme1:1.0"
+  }
 
-        echo "🚀 Applying Terraform configuration..."
-        terraform apply --auto-approve -var "private_key_path=saijenkins1.pem"
+  stages {
 
-        echo "🌍 Instance created successfully!"
-        terraform output || true
+    stage('Build') {
+      steps {
+        git url: 'https://github.com/Gautirockz/star-agile-banking-finance.git', branch: 'master'
+        sh "mvn -Dmaven.test.failure.ignore=true clean package"
+      }
+    }
 
-        echo "🧹 Cleaning up PEM..."
-        rm -f saijenkins1.pem
-      '''
+    stage('Create Docker Image') {
+      steps {
+        sh 'docker build -t $IMAGE_NAME .'
+      }
+    }
+
+    stage('Docker Login') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockercreds', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+          sh '''
+            echo "🔐 Logging in to Docker Hub..."
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+          '''
+        }
+      }
+    }
+
+    stage('Push Image') {
+      steps {
+        sh 'docker push $IMAGE_NAME'
+      }
+    }
+
+    stage('Config & Deployment') {
+      steps {
+        withCredentials([
+          [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsid1'],
+          file(credentialsId: 'ec2-ssh-key', variable: 'PEM')
+        ]) {
+          sh '''
+            set -e
+            echo "🔑 Injected PEM from Jenkins:"
+            ls -l $PEM
+            chmod 600 $PEM
+
+            echo "✅ Checking AWS identity..."
+            aws sts get-caller-identity --region us-east-1
+
+            echo "📂 Copying PEM file into terraform-files directory..."
+            cp "$PEM" terraform-files/saijenkins1.pem
+
+            # 🔧 Fix permissions for PEM file so Jenkins/Terraform can read it
+            echo "🔧 Fixing permissions for PEM..."
+            chmod 600 terraform-files/saijenkins1.pem || true
+            chown jenkins:jenkins terraform-files/saijenkins1.pem || true
+
+            cd terraform-files
+            terraform init -input=false
+            terraform validate
+
+            echo "🧹 Cleaning up any existing instance..."
+            terraform destroy --auto-approve -var "private_key_path=saijenkins1.pem" || true
+
+            echo "🚀 Creating new EC2 instance..."
+            terraform apply --auto-approve -var "private_key_path=saijenkins1.pem"
+
+            echo "🌍 Fetching instance public IP..."
+            terraform output public_ip || true
+
+            echo "✅ Deployment completed successfully!"
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "🎉 Pipeline executed successfully!"
+    }
+    failure {
+      echo "❌ Pipeline failed — check the logs for details."
     }
   }
 }
