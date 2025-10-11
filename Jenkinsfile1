@@ -37,7 +37,7 @@ stage('Config & Deployment') {
   steps {
     withCredentials([
       aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awsid1', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'),
-      sshUserPrivateKey(credentialsId: 'saijenkins2', keyFileVariable: 'PEM')
+      sshUserPrivateKey(credentialsId: 'saijenkins1', keyFileVariable: 'PEM')
     ]) {
       sh '''
         cp "$PEM" saijenkins1.pem
