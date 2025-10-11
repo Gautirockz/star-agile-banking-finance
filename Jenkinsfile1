@@ -41,7 +41,7 @@ stage('Create Docker Image') {
         ]) {
             sh '''
                 cp "$PEM" saijenkins1.pem
-                chmod 600 saikenkins1.pem
+                chmod 600 saijenkins1.pem
                 aws sts get-caller-identity --region ap-south-1 || true
 
                 cd terraform     
