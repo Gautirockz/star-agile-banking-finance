@@ -21,7 +21,10 @@ stage('Create Docker Image') {
   stage('Docker-Login') {
            steps {
               withCredentials([usernamePassword(credentialsId: 'dockercreds', passwordVariable: 'dockerpassword', usernameVariable: 'dockervariable')]) {
-               sh 'docker login -u ${dockerlogin} -p ${dockerpassword}'
+              sh '''
+                        set -e
+                        echo "$dockerpassword" | docker login -u "$dockervariable" --password-stdin
+                    '''
                                    }
                         }
                 }
