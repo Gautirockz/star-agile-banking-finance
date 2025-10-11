@@ -36,33 +36,37 @@ pipeline {
             }
         }
 
-        stage('Config & Deployment') {
-            steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsid1'],
-                    file(credentialsId: 'ec2-ssh-key', variable: 'PEM')
-                ]) {
-                    sh '''
-                        set -e
-                        echo "🔑 Using injected PEM from Jenkins..."
-                        ls -l $PEM
-                        chmod 600 $PEM
+       stage('Config & Deployment') {
+  steps {
+    withCredentials([
+      [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsid1'],
+      file(credentialsId: 'ec2-ssh-key', variable: 'PEM')
+    ]) {
+      sh '''
+        set -e
+        echo "🔑 Injected PEM from Jenkins:"
+        ls -l $PEM
+        chmod 600 $PEM
 
-                        echo "✅ Checking AWS identity..."
-                        aws sts get-caller-identity --region us-east-1
+        echo "✅ Checking AWS identity..."
+        aws sts get-caller-identity --region us-east-1
 
-                        cd terraform-files
-                        terraform init -input=false
-                        terraform validate
+        echo "📂 Copying PEM file into terraform-files directory..."
+        cp "$PEM" terraform-files/saijenkins1.pem
+        chmod 600 terraform-files/saijenkins1.pem
 
-                        echo "🚀 Applying Terraform to create/update EC2 instance..."
-                        terraform apply --auto-approve -var "private_key_path=$PEM"
+        cd terraform-files
+        terraform init -input=false
+        terraform validate
 
-                        echo "🌍 Instance created or updated successfully!"
-                        terraform output || true
-                    '''
-                }
-            }
-        }
+        echo "🚀 Running Terraform..."
+        terraform apply --auto-approve -var "private_key_path=saijenkins1.pem"
+
+        echo "🌍 Instance created successfully!"
+        terraform output || true
+      '''
+    }
+  }
+}
     }
 }
