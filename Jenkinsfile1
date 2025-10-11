@@ -4,7 +4,8 @@ pipeline {
     tools {
         // Install the Maven version configured as "M3" and add it to the .
         maven "mymaven1"
-    }
+    
+
 
     stages {
         stage('Build') {
@@ -41,22 +42,30 @@ stage('Config & Deployment') {
     ]) {
       sh '''
         set -e
-        echo "🔑 Using PEM injected from Jenkins credentials"
-        ls -l $PEM || true
+        echo "🔑 Using injected PEM from Jenkins..."
+        ls -l $PEM
+        chmod 600 $PEM
+
+        echo "✅ Checking AWS identity..."
+        aws sts get-caller-identity --region us-east-1
 
         cd terraform-files
         terraform init -input=false
         terraform validate
 
-        echo "🧹 Destroying any old infra..."
+        echo "🧹 Cleaning up any existing instance..."
         terraform destroy --auto-approve -var "private_key_path=$PEM" || true
 
-        echo "🚀 Applying new infra..."
+        echo "🚀 Creating new EC2 instance..."
         terraform apply --auto-approve -var "private_key_path=$PEM"
+
+        echo "🌍 Instance created successfully!"
+        terraform output || true
       '''
     }
   }
 }
+
 }
 }
 
