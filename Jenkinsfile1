@@ -15,7 +15,7 @@ pipeline {
         }
  stage('Create Docker Image') {
            steps {
-               sh 'docker build -tdocker push saigowtham2605/financeme1:1:0'
+               sh 'docker build -tdocker push saigowtham2605/financeme1:1:0  .'
                     }
                 }
 }
