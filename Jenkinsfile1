@@ -45,7 +45,7 @@ stage('Docker Login') {
                 
                 withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awsid1', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     dir('terraform-files') {
-                    sh 'sudo chmod 600 mykey.pem'
+                    sh 'sudo chmod 600 saijenkins1.pem'
                     sh 'terraform init'
                     sh 'terraform validate'
                     sh 'terraform apply --auto-approve'
