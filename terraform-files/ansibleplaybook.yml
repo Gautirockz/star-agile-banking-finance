@@ -6,7 +6,7 @@
   - name: updating apt
     command : sudo apt update
 
-  - name : Install Docker
+  - name : Install Docker 
     command : sudo apt install docker -y 
 
   - name : Start Docker Service
