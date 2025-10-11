@@ -11,18 +11,21 @@ resource "aws_instance" "test-server" {
     host        = self.public_ip
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "echo 'Waiting for instance to start...'",
-      "sudo apt-get update -y",
-      "sudo apt-get install -y nginx",
-      "sudo systemctl start nginx",
-      "sudo systemctl enable nginx",
-      "echo 'Nginx installed successfully!'"
-    ]
-  }
-
-  tags = {
+provisioner "remote-exec" {
+  inline = [
+    "echo 'Waiting for instance to start...'",
+    "sleep 30",  # Give EC2 some time to finish cloud-init
+    "sudo rm -rf /var/lib/apt/lists/lock || true",
+    "sudo rm -rf /var/lib/dpkg/lock* || true",
+    "sudo dpkg --configure -a || true",
+    "sudo apt-get update -y",
+    "sudo apt-get install -y nginx",
+    "sudo systemctl start nginx",
+    "sudo systemctl enable nginx",
+    "echo 'Nginx installed successfully!'"
+  ]
+}
+tags = {
     Name = "test-server"
   }
 
