@@ -41,7 +41,7 @@ pipeline {
             steps {
                 
              withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID1', credentialsId: 'awsid1', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY1')]) { 
-                    sh 'chmod 600 saijenkins1.pem'
+                    sh 'chmod 600 mykey.pem'
                     sh 'terraform init'
                     sh 'terraform validate'
                     sh 'terraform apply --auto-approve'
