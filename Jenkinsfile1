@@ -2,12 +2,12 @@ pipeline {
   agent any
 
   tools {
-    // Maven tool configured in Jenkins
     maven "mymaven1"
   }
 
   environment {
     IMAGE_NAME = "saigowtham2605/financeme1:1.0"
+    AWS_DEFAULT_REGION = "us-east-1"
   }
 
   stages {
@@ -55,40 +55,37 @@ pipeline {
             chmod 600 $PEM
 
             echo "✅ Checking AWS identity..."
-            aws sts get-caller-identity --region us-east-1
+            aws sts get-caller-identity
 
             echo "📂 Copying PEM file into terraform-files directory..."
             cp "$PEM" terraform-files/saijenkins1.pem
-
-            # 🔧 Fix permissions for PEM file so Jenkins/Terraform can read it
-            echo "🔧 Fixing permissions for PEM..."
-            chmod 600 terraform-files/saijenkins1.pem || true
-            chown jenkins:jenkins terraform-files/saijenkins1.pem || true
+            chmod 600 terraform-files/saijenkins1.pem
 
             cd terraform-files
             terraform init -input=false
             terraform validate
 
-            echo "🧹 Cleaning up any existing instance..."
-            terraform destroy --auto-approve -var "private_key_path=saijenkins1.pem" || true
+            # Optional cleanup before recreate
+            # terraform destroy --auto-approve -var "private_key_path=saijenkins1.pem" || true
 
             echo "🚀 Creating new EC2 instance..."
             terraform apply --auto-approve -var "private_key_path=saijenkins1.pem"
 
             echo "🌍 Fetching instance public IP..."
             terraform output public_ip || true
-echo "🌍 Testing connectivity to new EC2 instance..."
-sh '''
-  EC2_IP=$(terraform output -raw public_ip)
-  echo "EC2 Public IP: $EC2_IP"
-  echo "🔎 Checking SSH (port 22)..."
-  nc -zv $EC2_IP 22 || true
-  echo "🌐 Checking HTTP (port 80)..."
-  nc -zv $EC2_IP 80 || true
-  echo "✅ Connectivity test finished."
-'''
-echo "✅ Deployment completed successfully!"
           '''
+        }
+
+        script {
+          def ec2_ip = sh(script: "cd terraform-files && terraform output -raw public_ip", returnStdout: true).trim()
+          echo "EC2 Public IP: ${ec2_ip}"
+          sh """
+            echo "🔎 Checking SSH (port 22)..."
+            nc -zv ${ec2_ip} 22 || true
+            echo "🌐 Checking HTTP (port 80)..."
+            nc -zv ${ec2_ip} 80 || true
+            echo "✅ Connectivity test finished."
+          """
         }
       }
     }
