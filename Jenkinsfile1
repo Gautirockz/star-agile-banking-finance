@@ -60,7 +60,7 @@ pipeline {
         terraform validate
 
         echo "🚀 Running Terraform..."
-        terraform apply --auto-approve -var "private_key_path=saijenkins1.pem"
+       terraform apply --auto-approve -var "private_key_path=saijenkins11.pem"
 
         echo "🌍 Instance created successfully!"
         terraform output || true
