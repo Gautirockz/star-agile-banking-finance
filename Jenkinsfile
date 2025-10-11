@@ -41,10 +41,15 @@ pipeline {
             steps {
                 
              withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID1', credentialsId: 'awsid1', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY1')]) { 
-                    sh 'chmod 600 mykey.pem'
-                    sh 'terraform init'
-                    sh 'terraform validate'
-                    sh 'terraform apply --auto-approve'
+                   sh '''
+          echo "PEM path (temp): $PEM"
+          cp "$PEM" mykey.pem
+          chmod 600 mykey.pem
+          ls -l mykey.pem
+                   terraform init
+          terraform validate
+          terraform apply --auto-approve
+        '''
 }
     }
 }
