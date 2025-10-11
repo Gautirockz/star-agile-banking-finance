@@ -47,8 +47,9 @@ stage('Config & Deployment') {
         cd terraform-files
         terraform init
         terraform validate
-       terraform destroy --auto-approve
-       terraform apply --auto-approve
+      terraform destroy --auto-approve -var "private_key_path=$PEM" || true
+terraform apply --auto-approve -var "private_key_path=$PEM"
+
 
       '''
     }
