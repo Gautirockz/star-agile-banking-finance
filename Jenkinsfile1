@@ -36,26 +36,27 @@ stage('Create Docker Image') {
 stage('Config & Deployment') {
   steps {
     withCredentials([
-      aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awsid1', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'),
-      sshUserPrivateKey(credentialsId: 'saijenkins1', keyFileVariable: 'PEM')
+      [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsid1'],
+      file(credentialsId: 'ec2-ssh-key', variable: 'PEM')
     ]) {
       sh '''
-        cp "$PEM" saijenkins1.pem
-        chmod 600 saijenkins1.pem
-        aws sts get-caller-identity --region ap-south-1 || true
+        set -e
+        echo "🔑 Using PEM injected from Jenkins credentials"
+        ls -l $PEM || true
 
         cd terraform-files
-        terraform init
+        terraform init -input=false
         terraform validate
-      terraform destroy --auto-approve -var "private_key_path=$PEM" || true
-terraform apply --auto-approve -var "private_key_path=$PEM"
 
+        echo "🧹 Destroying any old infra..."
+        terraform destroy --auto-approve -var "private_key_path=$PEM" || true
 
+        echo "🚀 Applying new infra..."
+        terraform apply --auto-approve -var "private_key_path=$PEM"
       '''
     }
   }
 }
-
 }
 }
 
