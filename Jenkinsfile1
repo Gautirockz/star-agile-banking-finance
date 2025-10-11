@@ -18,5 +18,17 @@ stage('Create Docker Image') {
     sh 'docker build -t saigowtham2605/financeme1:1.0 .'
   }
 }
+  stage('Docker-Login') {
+           steps {
+              withCredentials([usernamePassword(credentialsId: 'dockercreds', passwordVariable: 'dockerpassword', usernameVariable: 'dockervariable')]) {
+               sh 'docker login -u ${dockerlogin} -p ${dockerpassword}'
+                                   }
+                        }
+                }
+       stage('Push-Image') {
+           steps {
+               sh 'docker push docker push saigowtham2605/financeme1:1:0'
+                     }
+                }
 }
 }
