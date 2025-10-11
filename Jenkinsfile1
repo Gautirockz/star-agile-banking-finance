@@ -42,53 +42,61 @@ pipeline {
       }
     }
 
-    stage('Config & Deployment') {
-      steps {
-        withCredentials([
-          [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsid1'],
-          file(credentialsId: 'ec2-ssh-key', variable: 'PEM')
-        ]) {
-          sh '''
-            set -e
-            echo "🔑 Injected PEM from Jenkins:"
-            ls -l $PEM
-            chmod 600 $PEM
+   stage('Config & Deployment') {
+  steps {
+    withCredentials([
+      [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsid1'],
+      file(credentialsId: 'ec2-ssh-key', variable: 'PEM')
+    ]) {
+      sh '''
+        set -e
+        echo "🔑 Checking PEM file provided by Jenkins..."
+        if [ ! -f "$PEM" ]; then
+          echo "❌ PEM file not found! Jenkins credential type might be wrong."
+          echo "➡️ Go to Jenkins > Credentials > ec2-ssh-key and ensure it is a Secret File."
+          exit 1
+        fi
+        echo "✅ PEM found at: $PEM"
+        ls -l $PEM
 
-            echo "✅ Checking AWS identity..."
-            aws sts get-caller-identity
+        echo "📂 Creating terraform-files directory..."
+        mkdir -p terraform-files
 
-            echo "📂 Copying PEM file into terraform-files directory..."
-            cp "$PEM" terraform-files/saijenkins1.pem
-            chmod 600 terraform-files/saijenkins1.pem
+        echo "📄 Copying PEM to terraform-files/saijenkins1.pem"
+        cp "$PEM" terraform-files/saijenkins1.pem
 
-            cd terraform-files
-            terraform init -input=false
-            terraform validate
+        echo "🔧 Setting permissions..."
+        chmod 600 terraform-files/saijenkins1.pem
+        ls -l terraform-files/
 
-            # Optional cleanup before recreate
-            # terraform destroy --auto-approve -var "private_key_path=saijenkins1.pem" || true
+        echo "🌍 Checking AWS identity..."
+        aws sts get-caller-identity --region us-east-1
 
-            echo "🚀 Creating new EC2 instance..."
-            terraform apply --auto-approve -var "private_key_path=saijenkins1.pem"
+        cd terraform-files
+        terraform init -input=false
+        terraform validate
 
-            echo "🌍 Fetching instance public IP..."
-            terraform output public_ip || true
-          '''
-        }
+        echo "🚀 Applying Terraform..."
+        terraform apply --auto-approve -var "private_key_path=saijenkins1.pem"
 
-        script {
-          def ec2_ip = sh(script: "cd terraform-files && terraform output -raw public_ip", returnStdout: true).trim()
-          echo "EC2 Public IP: ${ec2_ip}"
-          sh """
-            echo "🔎 Checking SSH (port 22)..."
-            nc -zv ${ec2_ip} 22 || true
-            echo "🌐 Checking HTTP (port 80)..."
-            nc -zv ${ec2_ip} 80 || true
-            echo "✅ Connectivity test finished."
-          """
-        }
-      }
+        echo "🌍 Fetching public IP..."
+        terraform output public_ip || true
+      '''
     }
+
+    script {
+      def ec2_ip = sh(script: "cd terraform-files && terraform output -raw public_ip", returnStdout: true).trim()
+      echo "EC2 Public IP: ${ec2_ip}"
+      sh """
+        echo "🔎 Checking SSH (port 22)..."
+        nc -zv ${ec2_ip} 22 || true
+        echo "🌐 Checking HTTP (port 80)..."
+        nc -zv ${ec2_ip} 80 || true
+      """
+    }
+  }
+}
+
   }
 
   post {
