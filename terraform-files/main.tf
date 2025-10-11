@@ -6,7 +6,7 @@ resource "aws_instance" "test-server" {
   connection {
      type = "ssh"
      user = "ubuntu"
-     private_key = file("./saiubuntu.pem")
+     private_key = file("./saijenkins1.pem")
      host = self.public_ip
      }
   provisioner "remote-exec" {
