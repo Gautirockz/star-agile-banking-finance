@@ -2,70 +2,67 @@ pipeline {
     agent any
 
     tools {
-        // Install the Maven version configured as "M3" and add it to the .
+        // Use your configured Maven version
         maven "mymaven1"
-    
-
+    }
 
     stages {
         stage('Build') {
             steps {
-            git url: 'https://github.com/Gautirockz/star-agile-banking-finance.git', branch: 'master'
+                git url: 'https://github.com/Gautirockz/star-agile-banking-finance.git', branch: 'master'
                 sh "mvn -Dmaven.test.failure.ignore=true clean package"
-                  }        
+            }
         }
-stage('Create Docker Image') {
-  steps {
-    sh 'docker build -t saigowtham2605/financeme1:1.0 .'
-  }
-}
-  stage('Docker-Login') {
-           steps {
-              withCredentials([usernamePassword(credentialsId: 'dockercreds', passwordVariable: 'dockerpassword', usernameVariable: 'dockervariable')]) {
-              sh '''
-                        set -e
+
+        stage('Create Docker Image') {
+            steps {
+                sh 'docker build -t saigowtham2605/financeme1:1.0 .'
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockercreds', passwordVariable: 'dockerpassword', usernameVariable: 'dockervariable')]) {
+                    sh '''
                         echo "$dockerpassword" | docker login -u "$dockervariable" --password-stdin
                     '''
-                                   }
-                        }
                 }
-       stage('Push-Image') {
-           steps {
-               sh 'docker push  saigowtham2605/financeme1:1.0'
-                     }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                sh 'docker push saigowtham2605/financeme1:1.0'
+            }
+        }
+
+        stage('Config & Deployment') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsid1'],
+                    file(credentialsId: 'ec2-ssh-key', variable: 'PEM')
+                ]) {
+                    sh '''
+                        set -e
+                        echo "🔑 Using injected PEM from Jenkins..."
+                        ls -l $PEM
+                        chmod 600 $PEM
+
+                        echo "✅ Checking AWS identity..."
+                        aws sts get-caller-identity --region us-east-1
+
+                        cd terraform-files
+                        terraform init -input=false
+                        terraform validate
+
+                        echo "🚀 Applying Terraform to create/update EC2 instance..."
+                        terraform apply --auto-approve -var "private_key_path=$PEM"
+
+                        echo "🌍 Instance created or updated successfully!"
+                        terraform output || true
+                    '''
                 }
-stage('Config & Deployment') {
-  steps {
-    withCredentials([
-      [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsid1'],
-      file(credentialsId: 'ec2-ssh-key', variable: 'PEM')
-    ]) {
-      sh '''
-        set -e
-        echo "🔑 Using injected PEM from Jenkins..."
-        ls -l $PEM
-        chmod 600 $PEM
-
-        echo "✅ Checking AWS identity..."
-        aws sts get-caller-identity --region us-east-1
-
-        cd terraform-files
-        terraform init -input=false
-        terraform validate
-
-        echo "🧹 Cleaning up any existing instance..."
-        terraform destroy --auto-approve -var "private_key_path=$PEM" || true
-
-        echo "🚀 Creating new EC2 instance..."
-        terraform apply --auto-approve -var "private_key_path=$PEM"
-
-        echo "🌍 Instance created successfully!"
-        terraform output || true
-      '''
+            }
+        }
     }
-  }
 }
-
-}
-}
-
