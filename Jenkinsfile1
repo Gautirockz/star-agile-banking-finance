@@ -30,7 +30,7 @@ stage('Create Docker Image') {
                 }
        stage('Push-Image') {
            steps {
-               sh 'docker push docker push saigowtham2605/financeme1:1:0'
+               sh 'docker push  saigowtham2605/financeme1:1:0'
                      }
                 }
 }
