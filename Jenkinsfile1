@@ -36,13 +36,20 @@ stage('Create Docker Image') {
 stage('Config & Deployment') {
             steps {
                 
-              withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awsid1', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    //sh 'sudo chmod 600 saijenkins1.pem'
-                cp "$PEM" mykey.pem && chmod 600 saijenkins1.pem
-                    sh 'terraform init'
-                    sh 'terraform validate'
-                    sh 'terraform apply --auto-approve'
+              withCredentials([
+  aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awsid1', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'),
+  sshUserPrivateKey(credentialsId: 'saijenkins1', keyFileVariable: 'PEM')
+]) {
+  sh '''
+    cp "$PEM" mykey.pem
+    chmod 600 mykey.pem
+    aws sts get-caller-identity --region ap-south-1 || true
+    terraform init
+    terraform validate
+    terraform apply --auto-approve
+  '''
 }
+
     }
 }
 }
