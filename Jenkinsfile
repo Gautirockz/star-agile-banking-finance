@@ -40,7 +40,7 @@ pipeline {
             stage('Config & Deployment') {
             steps {
                 
-             withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID1', credentialsId: 'awslogin', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY1')]) { 
+             withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID1', credentialsId: 'awsid1', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY1')]) { 
                     sh 'sudo chmod 600 mykey.pem'
                     sh 'terraform init'
                     sh 'terraform validate'
