@@ -77,8 +77,17 @@ pipeline {
 
             echo "🌍 Fetching instance public IP..."
             terraform output public_ip || true
-
-            echo "✅ Deployment completed successfully!"
+echo "🌍 Testing connectivity to new EC2 instance..."
+sh '''
+  EC2_IP=$(terraform output -raw public_ip)
+  echo "EC2 Public IP: $EC2_IP"
+  echo "🔎 Checking SSH (port 22)..."
+  nc -zv $EC2_IP 22 || true
+  echo "🌐 Checking HTTP (port 80)..."
+  nc -zv $EC2_IP 80 || true
+  echo "✅ Connectivity test finished."
+'''
+echo "✅ Deployment completed successfully!"
           '''
         }
       }
