@@ -8,11 +8,12 @@ resource "aws_instance" "test-server" {
   vpc_security_group_ids = ["sg-0040ea524604db821"]
 
   connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file(var.private_key_path)
-    host        = self.public_ip
-  }
+  type        = "ssh"
+  user        = "ubuntu"
+  private_key = file(var.private_key_path)
+  host        = self.public_ip
+}
+
 
 provisioner "remote-exec" {
   inline = [
