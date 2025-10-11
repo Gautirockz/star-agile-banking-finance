@@ -1,42 +1,4 @@
-pipeline {
-    agent any
-
-    tools {
-        // Use your configured Maven version
-        maven "mymaven1"
-    }
-
-    stages {
-        stage('Build') {
-            steps {
-                git url: 'https://github.com/Gautirockz/star-agile-banking-finance.git', branch: 'master'
-                sh "mvn -Dmaven.test.failure.ignore=true clean package"
-            }
-        }
-
-        stage('Create Docker Image') {
-            steps {
-                sh 'docker build -t saigowtham2605/financeme1:1.0 .'
-            }
-        }
-
-        stage('Docker Login') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockercreds', passwordVariable: 'dockerpassword', usernameVariable: 'dockervariable')]) {
-                    sh '''
-                        echo "$dockerpassword" | docker login -u "$dockervariable" --password-stdin
-                    '''
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                sh 'docker push saigowtham2605/financeme1:1.0'
-            }
-        }
-
-       stage('Config & Deployment') {
+stage('Config & Deployment') {
   steps {
     withCredentials([
       [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'awsid1'],
@@ -44,29 +6,26 @@ pipeline {
     ]) {
       sh '''
         set -e
-        echo "🔑 Injected PEM from Jenkins:"
-        ls -l $PEM
-        chmod 600 $PEM
+        echo "🔑 Using saijenkins1.pem from Jenkins credentials..."
+        cp "$PEM" terraform-files/saijenkins1.pem
+        chmod 600 terraform-files/saijenkins1.pem
 
         echo "✅ Checking AWS identity..."
         aws sts get-caller-identity --region us-east-1
-
-        echo "📂 Copying PEM file into terraform-files directory..."
-        cp "$PEM" terraform-files/saijenkins1.pem
-        chmod 600 terraform-files/saijenkins1.pem
 
         cd terraform-files
         terraform init -input=false
         terraform validate
 
-        echo "🚀 Running Terraform..."
-       terraform apply --auto-approve -var "private_key_path=saijenkins11.pem"
+        echo "🚀 Applying Terraform configuration..."
+        terraform apply --auto-approve -var "private_key_path=saijenkins1.pem"
 
         echo "🌍 Instance created successfully!"
         terraform output || true
+
+        echo "🧹 Cleaning up PEM..."
+        rm -f saijenkins1.pem
       '''
     }
   }
-}
-    }
 }
