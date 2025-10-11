@@ -3,14 +3,15 @@ pipeline {
 
     tools {
         // Install the Maven version configured as "M3" and add it to the path.
-        maven "M2_HOME"
+        maven "mymaven1"
     }
 
     stages {
         stage('Build') {
             steps {
                 // Get some code from a GitHub repository
-             git   https://github.com/Gautirockz/star-agile-banking-finance.git
+            git url: 'https://github.com/Gautirockz/star-agile-banking-finance.git', branch: 'master'
+
                 // Run Maven on a Unix agent.
                 sh "mvn -Dmaven.test.failure.ignore=true clean package"
 
