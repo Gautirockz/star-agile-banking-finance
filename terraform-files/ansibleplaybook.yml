@@ -2,7 +2,7 @@
 - name: Install and Run Docker Container
   hosts: all
   become: yes
-  tasks:
+  tasks: 
     - name: Update apt repository
       apt:
         update_cache: yes
